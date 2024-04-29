@@ -1,12 +1,13 @@
 from flask_restx import Namespace, fields
 
 
-class BenefitDto:
+class BenefitModel:
     benefit_api = Namespace('benefit_api', description='혜택 정보 관련 api', path='/benefit')
     benefit = benefit_api.model(
         'benefit',
         {
-            'id': fields.Integer(required=True, description='혜택 ID'),
+            'id': fields.Integer(description='혜택 ID'),
+            'datetime': fields.Integer(description='혜택 업데이트 일자'),
             'name': fields.String(required=True, description='혜택 이름'),
             'provider': fields.String(required=True, description='혜택 제공 주체'),
             'amount': fields.Integer(required=True, description='할인 금액'),
@@ -17,7 +18,7 @@ class BenefitDto:
     )
 
 
-class UserDto:
+class UserModel:
     user_api = Namespace('user_api', description='User 정보 관련 API', path='/user')
     user = user_api.model(
         'user',

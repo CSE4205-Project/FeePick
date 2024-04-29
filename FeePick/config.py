@@ -6,6 +6,9 @@ class Config:
     AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
     AWS_REGION = os.environ.get('AWS_REGION')
 
+    NAVER_MAPS_CLIENT_ID = os.environ.get('NAVER_MAPS_CLIENT_ID')
+    NAVER_MAPS_CLIENT_SECRET = os.environ.get('NAVER_MAPS_CLIENT_SECRET')
+
     @classmethod
     def devmode(cls, mode):
         if mode == 'dev':

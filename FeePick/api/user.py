@@ -1,10 +1,10 @@
 from flask import request
 from flask_restx import Resource
 
-from FeePick.util import UserDto
+from FeePick.model import UserModel
 
-_user_api = UserDto.user_api
-_user = UserDto.user
+_user_api = UserModel.user_api
+_user = UserModel.user
 
 
 @_user_api.route('/calc')
