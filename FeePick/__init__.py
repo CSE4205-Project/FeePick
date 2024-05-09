@@ -1,8 +1,9 @@
 from flask import Flask
 from flask_cors import CORS
 from flask_restx import Api, Resource
-from FeePick import routes
 
+from FeePick.api import add_namespaces
+from FeePick.migration import migrate
 
 
 def create_app():
@@ -17,12 +18,14 @@ def create_app():
         title='FeePick',
         description='Personalized transportation card recommendations',
     )
+
     @api.route('/health')
     class HealthCheck(Resource):
         def get(self):
             return {'health': 'ok'}
 
-    routes.add_namespaces(api)
-    
+    add_namespaces(api)
+
+    migrate.create_tables()
 
     return app
