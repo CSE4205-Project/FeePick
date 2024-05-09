@@ -6,17 +6,13 @@ class Config:
     AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
     AWS_REGION = os.environ.get('AWS_REGION')
 
+    # Naver maps API
     NAVER_MAPS_CLIENT_ID = os.environ.get('NAVER_MAPS_CLIENT_ID')
     NAVER_MAPS_CLIENT_SECRET = os.environ.get('NAVER_MAPS_CLIENT_SECRET')
 
-    @classmethod
-    def devmode(cls, mode):
-        if mode == 'dev':
-            cls.endpointUrl = os.environ.get('ENDPOINT_URL')
-            return cls
+    # ODsay API
+    ODSAY_API_KEY = os.environ.get('ODSAY_API_KEY')
 
-        else:
-            cls.AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
-            cls.AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
-            cls.AWS_REGION = os.environ.get('AWS_REGION')
-            return cls
+    # DB Table
+    BENEFIT_TABLE_NAME = os.environ.get('BENEFIT_TABLE')
+    USER_TABLE_NAME = os.environ.get('USER_TABLE')

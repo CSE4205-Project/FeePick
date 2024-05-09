@@ -26,4 +26,6 @@ def create_app():
 
     add_namespaces(api)
 
+    migrate.create_tables()
+
     return app

@@ -1,1 +1,1 @@
-from .model import BenefitModel, UserModel
+from .model import BenefitModel, UserModel, PositionModel

@@ -2,18 +2,21 @@ import uuid
 import time
 import random
 
+from boto3.dynamodb.conditions import Attr
+
+from FeePick.config import Config
 from FeePick.migration import dynamodb
 
 
-db = dynamodb.Table('Benefits')
+db = dynamodb.Table(Config.BENEFIT_TABLE_NAME)
 
 
 def save_benefit(dto):
     dtime = int(time.time())
     item = {
-        'uuid': str(uuid.uuid4()),                                    # data 고유 id
+        'uuid': uuid.uuid4(),                                         # data 고유 id
         'datetime': dtime,                                            # data 시간
-        'id': (dtime * 10000000) + random.randint(1, 9999999),  # data 접근용 id
+        'id': (dtime * 10000000) + random.randint(1, 1999999),  # data 접근용 id
         'name': dto['name'],
         'provider': dto['provider'],
         'amount': dto['amount'],
@@ -30,26 +33,23 @@ def save_benefit(dto):
 
 
 def get_benefit(_id):
-    try:
-        response = db.get_item(Key={'datetime': _id})
-        print(response)
-        return response['Item']
-    except Exception as e:
-        return False, str(e)
+    response = db.scan(
+        FilterExpression=Attr('id').eq(_id)
+    )
+    return response['Items'][0]
 
 
 def get_all_benefits():
-    try:
-        response = db.scan()
-        item_list = response.get('Items')
-        return item_list
-    except Exception as e:
-        return False, str(e)
+    response = db.scan()
+    item_list = response['Items']
+    return item_list
 
 
-def delete_benefit(_id):
-    try:
-        db.delete_item(Key={'id': _id})
-        return True, 'Success'
-    except Exception as e:
-        return False, str(e)
+def delete_benefit(_id, _uuid):
+    db.delete_item(
+        Key={
+            'uuid': _uuid,
+            'id': _id
+        }
+    )
+    return True, 'Success'

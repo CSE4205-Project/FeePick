@@ -23,10 +23,45 @@ class UserModel:
     user = user_api.model(
         'user',
         {
-            'id': fields.Integer(required=True, description='user id'),
+            'id': fields.Integer(description='user id'),
             'age': fields.Integer(required=True, description='user age'),
             'gender': fields.String(required=True, description='사용자 성별'),
             'residence': fields.String(required=True, description='사용자 거주지, 내부 json 형태로 저장'),
-            'route': fields.String(required=True, description='사용자 주 사용 루트, 내부 json 형태의 리스트로 저장')
+            'start': fields.String(required=True, description='사용자 주 경로의 출발지'),
+            'end': fields.String(required=True, description='사용자 주 경로의 도착지'),
+            'times': fields.Integer(required=True, description='사용자 주 경로의 이용 빈도'),
+            'selectedBenefit': fields.String(description='최적 혜택')
         }
     )
+
+
+class PositionModel:
+    x = -1
+    y = -1
+    street_address = "-1"
+
+    def __init__(self, x, y, street_address):
+        self.x = x
+        self.y = y
+        self.street_address = street_address
+
+    def get_position(self):
+        return [self.x, self.y]
+
+    def get_x(self):
+        return self.x
+
+    def get_y(self):
+        return self.y
+
+    def get_st_address(self):
+        return self.street_address
+
+    def set_x(self, x):
+        self.x = x
+
+    def set_y(self, y):
+        self.y = y
+
+    def set_st_address(self, street_address):
+        self.street_address = street_address
