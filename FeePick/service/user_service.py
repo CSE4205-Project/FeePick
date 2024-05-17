@@ -23,6 +23,7 @@ def save_user(user):
         'start': user['start'],
         'end': user['end'],
         'times': user['times'],
+        'specialCase': user['specialCase'],
         'benefit': None,
     }
     try:

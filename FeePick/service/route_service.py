@@ -21,6 +21,7 @@ class NaverAPI:
             else:
                 output = None
             return output
+            # return data                       # Naver MAPS 에서 가져온 response 를 그대로 return
         else:
             return None
 

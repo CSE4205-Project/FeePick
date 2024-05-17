@@ -21,13 +21,13 @@ class Benefit(Resource):
         except Exception as e:
             return str(e), 400
 
-    @_benefit_api.doc(id='DeleteBenefit', description='특정 혜택 삭제')
-    def delete(self, _id):
-        try:
-            item = benefit_service.delete_benefit(_id)
-            return item, 201
-        except Exception as e:
-            return str(e), 400
+    # @_benefit_api.doc(id='DeleteBenefit', description='특정 혜택 삭제')
+    # def delete(self, _id):
+    #     try:
+    #         item = benefit_service.delete_benefit(_id)
+    #         return item, 201
+    #     except Exception as e:
+    #         return str(e), 400
 
 
 @_benefit_api.route('/list')
@@ -49,7 +49,6 @@ class BenefitAdd(Resource):
     @_benefit_api.expect(_benefit, validate=True)
     def post(self):
         data = request.get_json()
-        if benefit_service.save_benefit(data):
-            return {'message': 'Success'}, 201
-        else:
-            return {'message': 'Failed'}, 400
+        benefit, db_response = benefit_service.save_benefit(data)
+        print(db_response)
+        return {'message': 'Success'}, 201
