@@ -1,6 +1,7 @@
 from flask import request
 from flask_restx import Resource
 
+import FeePick.service
 from FeePick.model import UserModel
 from FeePick.service import save_user, get_user, calc_exist_trans_fee, calc_kpass_benefit
 
@@ -44,5 +45,7 @@ class Test(Resource):
     def post(self):
         data = request.json
         route, fee_month = calc_exist_trans_fee(data)
-        calc_kpass_benefit(data, route)
-        return 200
+        list = calc_kpass_benefit(data, route)
+        for item in list:
+            print(item['benefit']['name'] + " : " + str(item['fee']))
+        return route

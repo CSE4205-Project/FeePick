@@ -99,9 +99,23 @@ def calc_kpass_benefit(_user, route):
 
         # 카드사 제공
         else:
-            continue
+            amount = calc_kpass_benefit_amount(_user, route, False)
+            if item['claimCondition']:
+                amount *= (1 - float(item['claim']))
+            elif item['cashbackCondition']:
+                amount *= (1 - float(item['cashback']))
+            elif item['amountCondition']:
+                amount += int(item['amount'])
+            elif item['priceCondition']:
+                amount -= int(item['price'])
 
-    print(benefit_list)
+            benefit_list.append(
+                {
+                    'benefit': item,
+                    'fee': int(amount)
+                }
+            )
+
     return benefit_list
 
 
