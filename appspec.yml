@@ -1,0 +1,15 @@
+version: 0.0
+os: linux
+
+files:
+  - source: /
+    destination: /home/deploy/FeePick
+    overwrite: yes
+
+hooks:
+  AfterInstall:
+    - location: scripts/pip_initialize.sh
+      runas: root
+  ApplicationStart:
+    - location: scripts/server_start.sh
+      runas: root

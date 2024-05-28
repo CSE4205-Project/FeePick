@@ -1,9 +1,8 @@
 from flask import request
 from flask_restx import Resource
 
-import FeePick.service
 from FeePick.model import UserModel
-from FeePick.service import save_user, get_user, calc_exist_trans_fee, calc_kpass_benefit
+from FeePick.service import save_user, get_user, get_route, make_user_benefit_list, add_selected_count
 
 _user_api = UserModel.user_api
 _user = UserModel.user
@@ -17,11 +16,29 @@ class User(Resource):
     @_user_api.expect(_user, validate=True)
     def post(self):
         data = request.json
+        route = get_route(data)
+        benefit_list = make_user_benefit_list(data, route)
+        benefit_list = sorted(benefit_list, key=lambda x: (x['fee'], x['benefit']['name']))
+        stored_list = []
+        for i in benefit_list:
+            print(i['benefit']['name'] + " : " + str(i['fee']))
+            stored_list.append(
+                {
+                    'benefit': {
+                        'uuid': i['benefit']['uuid'],
+                        'id': i['benefit']['id'],
+                        'name': i['benefit']['name'],
+                    },
+                    'fee': i['fee']
+                }
+            )
+        data['selectedBenefit'] = stored_list
+        for i in range(0, 3):
+            add_selected_count(benefit_list[i]['benefit'], i)
         user, db_response = save_user(data)
-        route, fee_month = calc_exist_trans_fee(user)   # not implemented
-        if fee_month is not None:
-            return fee_month, 200
-
+        print(db_response)
+        if user is not None:
+            return str(user), 200
         else:
             return {'message': 'error'}, 500
 
@@ -35,17 +52,3 @@ class UserId(Resource):
         user = get_user(_id)
         print(user)
         return 200
-
-
-@_user_api.route('/test')
-@_user_api.doc(id='testapi', description='test api')
-class Test(Resource):
-    @_user_api.doc(id='testapi', description='test api')
-    @_user_api.expect(_user, validate=True)
-    def post(self):
-        data = request.json
-        route, fee_month = calc_exist_trans_fee(data)
-        list = calc_kpass_benefit(data, route)
-        for item in list:
-            print(item['benefit']['name'] + " : " + str(item['fee']))
-        return route

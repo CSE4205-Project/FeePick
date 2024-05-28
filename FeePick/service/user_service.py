@@ -7,9 +7,12 @@ from boto3.dynamodb.conditions import Attr
 from FeePick.config import Config
 from FeePick.migration import dynamodb
 from .route_service import NaverAPI, ODSayAPI
+from .benefit_service import benefit_table, make_benefit_list
+from .kpass import KPass
 
 
-db = dynamodb.Table(Config.USER_TABLE_NAME)
+user_table = dynamodb.Table(Config.USER_TABLE_NAME)
+climate_table = dynamodb.Table(Config.CLIMATE_TABLE_NAME)
 
 
 def save_user(user):
@@ -24,30 +27,38 @@ def save_user(user):
         'end': user['end'],
         'times': user['times'],
         'specialCase': user['specialCase'],
-        'benefit': None,
+        'benefit': user['selectedBenefit'],
     }
     try:
-        response = db.put_item(Item=item)
+        response = user_table.put_item(Item=item)
         return item, response
     except Exception as e:
         return False, str(e)
 
 
 def get_user(_id):
-    response = db.scan(
+    response = user_table.scan(
         FilterExpression=Attr('id').eq(_id)
     )
     return response['Items'][0]
 
 
-def calc_exist_trans_fee(user):
+def get_route(user):
     start_pos = NaverAPI.get_position(user['start'])
     end_pos = NaverAPI.get_position(user['end'])
     route = ODSayAPI.get_route(start_pos, end_pos)
-    fee_month = route['info']['payment'] * user['times'] * 2
 
     if route:
-        return route, fee_month
+        return route
 
     else:
-        return None, None
+        return None
+
+
+def make_user_benefit_list(user, route):
+    benefit_lists = []
+    kpass = KPass(benefit_table)
+    benefit_lists.extend(kpass.calc_kpass(user, route))
+    benefit_lists.extend(make_benefit_list(user, route))
+
+    return benefit_lists
