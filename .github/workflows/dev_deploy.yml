@@ -12,7 +12,7 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@dev
+        uses: actions/checkout@v2
 
       - name: Set up Python
         uses: actions/setup-python@dev
@@ -26,6 +26,7 @@ jobs:
             pip install -r requirements.txt
 
       - name: Create .env file
+        working-directory: ./
         run : |
           echo "NAVER_MAPS_CLIENT_ID=${{ secrets.NAVER_MAPS_CLIENT_ID }}" >> .env
           echo "NAVER_MAPS_CLIENT_SECRET=${{ secrets.NAVER_MAPS_CLIENT_SECRET }}" >> env
