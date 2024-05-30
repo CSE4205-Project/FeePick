@@ -29,14 +29,24 @@ jobs:
         working-directory: ./
         run : |
           echo "NAVER_MAPS_CLIENT_ID=${{ secrets.NAVER_MAPS_CLIENT_ID }}" >> .env
-          echo "NAVER_MAPS_CLIENT_SECRET=${{ secrets.NAVER_MAPS_CLIENT_SECRET }}" >> env
-          echo "ODSAY_API_KEY=${{ secrets.ODSAY_API_KEY }}" >> env
+          echo "NAVER_MAPS_CLIENT_SECRET=${{ secrets.NAVER_MAPS_CLIENT_SECRET }}" >> .env
+          echo "ODSAY_API_KEY=${{ secrets.ODSAY_API_KEY }}" >> .env
+          echo "BENEFIT_TABLE=${{ secrets.BENEFIT_TABLE }}" >> .env
+          echo "USER_TABLE=${{ secrets.USER_TABLE }}" >> .env
+          echo "CLIMATE_TABLE=${{ secrets.CLIMATE_TABLE }}" >> .env
 
       - name: Create Compressed file
         run: zip -r server.zip .
 
+      - name: Configuring AWS Credential
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
       - name: Upload S3
-        run: aws s3 cp --region ap-southeast-1 ./server.zip s3://${{secrets.BUCKET_NAME}}/public/
+        run: aws s3 cp --region ap-northeast-2 ./server.zip s3://${{secrets.BUCKET_NAME}}/public/
 
       - name: Deploy CodeDeploy
         run: aws deploy create-deployment
