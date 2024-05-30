@@ -7,4 +7,4 @@ sudo apt -y upgrade
 
 source venv/bin/activate
 
-pip install -r --ignore-installed requirements.txt
+pip install -r requirements.txt --ignore-installed
