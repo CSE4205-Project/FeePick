@@ -1,4 +1,7 @@
-from flask import request
+# import simplejson as json
+import decimal
+
+from flask import request, jsonify
 from flask_restx import Resource
 
 from FeePick.model import BenefitModel
@@ -27,7 +30,7 @@ class BenefitList(Resource):
     def post(self):
         benefit_list = benefit_service.get_all_benefits()
         if benefit_list:
-            return str(benefit_list), 201
+            return benefit_list, 201
         else:
             return {'message': "Failed"}, 400
 

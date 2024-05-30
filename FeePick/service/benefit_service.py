@@ -8,7 +8,7 @@ from boto3.dynamodb.conditions import Attr
 
 from FeePick.config import Config
 from FeePick.migration import dynamodb
-
+from FeePick.service.routine import decimal_to_float
 
 benefit_table = dynamodb.Table(Config.BENEFIT_TABLE_NAME)
 climate_table = dynamodb.Table(Config.CLIMATE_TABLE_NAME)
@@ -25,7 +25,7 @@ def save_benefit(dto):
         'description': dto['description'],
         'url': dto['url'],
         'kpass': dto['kpass'],
-        'rate': dto['rate'],
+        'rate': float(dto['rate']),
         'rateCondition': dto['rateCondition'],
         'amount': dto['amount'],
         'amountCondition': dto['amountCondition'],
@@ -51,13 +51,22 @@ def get_benefit(_id):
     response = benefit_table.scan(
         FilterExpression=Attr('id').eq(_id)
     )
-    return response['Items'][0]
+    item = response['Items'][0]
+    item = decimal_to_float(item)
+
+    return item
 
 
 def get_all_benefits():
     response = benefit_table.scan()
     item_list = response['Items']
-    return item_list
+    output = []
+
+    for item in item_list:
+        convert = decimal_to_float(item)
+        output.append(convert)
+
+    return output
 
 
 # 기후동행카드 사용 가능 여부 확인

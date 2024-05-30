@@ -50,5 +50,4 @@ class UserId(Resource):
     @_user_api.doc(id='2-2-1', description='User 정보를 가져오는 api')
     def post(self, _id):
         user = get_user(_id)
-        print(user)
-        return 200
+        return user, 200
