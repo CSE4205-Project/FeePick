@@ -3,6 +3,20 @@ from flask_restx import Namespace, fields
 
 class BenefitModel:
     benefit_api = Namespace('benefit_api', description='혜택 정보 관련 api', path='/benefit')
+    benefit_description = benefit_api.model(
+        'benefit_description',
+        {
+                "benefits": fields.List(fields.String),
+                "hashtags": fields.List(fields.String),
+                "annualFee": fields.List(fields.List(fields.String)),
+                "notes": fields.List(fields.String),
+                "additionalInfo": fields.List(fields.List(fields.String)),
+                "image": fields.String(),
+                "subject": fields.String(),
+                "benefitType": fields.String(),
+                "cardType": fields.String(),
+        }
+    )
     benefit = benefit_api.model(
         'benefit',
         {
@@ -10,7 +24,11 @@ class BenefitModel:
             'datetime': fields.Integer(description='혜택 업데이트 일자'),
             'name': fields.String(required=True, description='혜택 이름'),
             'provider': fields.String(required=True, description='혜택 제공 주체'),
-            'description': fields.String(required=True, description='그 외 조건 등, 내부 json 형태로 저장'),
+            'description': fields.Nested(
+                required=True,
+                description='그 외 조건 등, 내부 json 형태로 저장',
+                model=benefit_description
+            ),
             'url': fields.String(required=True, description='카드사 url'),
             'kpass': fields.Boolean(description='K-pass 여부'),
             'rate': fields.Float(description='할인율'),
@@ -28,6 +46,7 @@ class BenefitModel:
             'view': fields.Integer(description='혜택 조회수')
         }
     )
+
 
 
 class UserModel:
