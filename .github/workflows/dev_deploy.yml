@@ -32,6 +32,9 @@ jobs:
           echo "NAVER_MAPS_CLIENT_SECRET=${{ secrets.NAVER_MAPS_CLIENT_SECRET }}" >> env
           echo "ODSAY_API_KEY=${{ secrets.ODSAY_API_KEY }}" >> env
 
+      - name: Create Compressed file
+        run: zip -r server.zip .
+
       - name: Upload S3
         run: aws s3 cp --region ap-southeast-1 ./server.zip s3://${{secrets.BUCKET_NAME}}/public/
 
