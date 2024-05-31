@@ -48,19 +48,31 @@ class BenefitModel:
     )
 
 
-
 class UserModel:
     user_api = Namespace('user_api', description='User 정보 관련 API', path='/user')
+    user_location = user_api.model(
+        'user_location',
+        {
+            'departure': fields.String(required=True, description='출발지'),
+            'destination': fields.String(required=True, description='도착지'),
+            'frequency': fields.Integer(required=True, description='빈도')
+        }
+    )
     user = user_api.model(
         'user',
         {
             'id': fields.Integer(description='user id'),
-            'age': fields.Integer(required=True, description='user age'),
+            'age': fields.Integer(required=True, description='사용자 나이'),
             'gender': fields.String(required=True, description='사용자 성별'),
-            'residence': fields.String(required=True, description='사용자 거주지, 내부 json 형태로 저장'),
-            'start': fields.String(required=True, description='사용자 주 경로의 출발지'),
-            'end': fields.String(required=True, description='사용자 주 경로의 도착지'),
-            'times': fields.Integer(required=True, description='사용자 주 경로의 이용 빈도'),
+            'residence1': fields.String(required=True, description='사용자 거주지 1'),
+            'residence2': fields.String(required=True, description='사용자 거주지 2'),
+            'location': fields.List(
+                fields.Nested(
+                    required=True,
+                    description='사용자의 경로',
+                    model=user_location
+                )
+            ),
             'specialCase': fields.Boolean(required=True, description='사용자의 특정한 조건 존재 시'),
             'selectedBenefit': fields.String(description='최적 혜택')
         }

@@ -8,7 +8,7 @@ from boto3.dynamodb.conditions import Attr
 
 from FeePick.config import Config
 from FeePick.migration import dynamodb
-from FeePick.service.routine import decimal_to_float
+from .routine import decimal_to_float
 
 benefit_table = dynamodb.Table(Config.BENEFIT_TABLE_NAME)
 climate_table = dynamodb.Table(Config.CLIMATE_TABLE_NAME)
@@ -52,7 +52,7 @@ def get_benefit(_id):
         FilterExpression=Attr('id').eq(_id)
     )
     item = response['Items'][0]
-    item = decimal_to_float(item)
+    item = decimal_to_float(item)               # Decimal data를 float/int로 변환
 
     return item
 
@@ -63,7 +63,7 @@ def get_all_benefits():
     output = []
 
     for item in item_list:
-        convert = decimal_to_float(item)
+        convert = decimal_to_float(item)        # Decimal data를 float/int로 변환
         output.append(convert)
 
     return output
@@ -132,65 +132,86 @@ def check_climatecard_area(_route):
 
 
 # 할인율과 할인 금액을 계산 하는 함수
-def calc_amount(_item, amount, _fee, _times):
-    # 할인 금액에 제한이 있는 겨웅
-    if _item['hasLimit']:
-        fee_tmp = amount * _item['rate']
+# _item : 혜택
+# _amount : 전체 금액
+# _fee : 기본 요금
+# _times : 이용 횟수
+def calc_amount(_standard_fee, _item, _route):
+    fee = _route['route']['info']['payment']
+    frequency = _route['frequency']
+
+    # 비율 할인 이면서 할인 금액에 제한이 있는 경우:
+    if _item['rateCondition'] and _item['hasLimit']:
+        fee_tmp = _standard_fee * _item['rate']
         if fee_tmp < _item['amount']:
-            amount -= fee_tmp
+            _standard_fee -= fee_tmp
         else:
-            amount -= _item['amount']
-    # 할인율 계산
+            _standard_fee -= _item['amount']
+
+    # 비율 할인인 경우
     elif _item['rateCondition']:
-        amount *= (1 - _item['rate'])
-    # 할인액 계산
+        _standard_fee *= (1 - _item['rate'])
+
+    # 정액 할인인 경우:
     elif _item['amountCondition']:
         # 교통비 n원 이상 사용 조건이 있을 시
         if _item['condition'] > 0:
-            if amount >= _item['condition']:
-                amount -= _item['amount']
+            if _standard_fee >= _item['condition']:
+                _standard_fee -= _item['amount']
         # 그 외
         else:
-            amount -= _item['amount']
-    # 건당 할인 계산
+            _standard_fee -= _item['amount']
+
+    # 건당 할인인 경우
     elif _item['caseCondition']:
-        amount = ((_fee - _item['case']) * _times * 2)
+        _standard_fee -= (_item['case'] * frequency * 2)
 
     # 정기권이면 금액 그대로
     if _item['priceCondition']:
-        amount = _item['price']
+        _standard_fee = _item['price']
     # 연회비면 금액 책정에 반영
     else:
-        amount += int(_item['annualFee'] / 12)
+        _standard_fee += int(_item['annualFee'] / 12)
 
-    return amount
+    return int(_standard_fee)
 
 
-def make_benefit_list(_user, _route):
+def make_benefit_list(_user, _route_list):
     benefit_data = benefit_table.scan(
         FilterExpression=Attr('kpass').eq(False)
     )['Items']
 
     benefit_list = []
 
+    climate_flag = True
+    for route in _route_list:
+        if not check_climatecard_area(route['route']):
+            climate_flag = False
+
+    if climate_flag:
+        benefit = benefit_table.scan(FilterExpression=Attr('name').eq('기후동행카드'))['Items'][0]
+        benefit_list.append({
+            'benefit': benefit,
+            'fee': 62000
+        })
+
     for benefit in benefit_data:
         if benefit['name'] == '기후동행카드':
-            if check_climatecard_area(_route):
-                benefit_list.append({
-                    'benefit': benefit,
-                    'fee': 62000
-                })
-        else:
-            amount = calc_amount(
+            continue
+
+        amount = 0
+        i = 0
+        for route in _route_list:
+            amount += calc_amount(
+                route['route']['info']['payment'] * route['frequency'] * 2,
                 benefit,
-                _route['info']['payment'] * _user['times'] * 2,
-                _route['info']['payment'],
-                _user['times']
+                route
             )
-            benefit_list.append({
-                'benefit': benefit,
-                'fee': amount
-            })
+            i += 1
+        benefit_list.append({
+            'benefit': benefit,
+            'fee': amount
+        })
 
     return benefit_list
 

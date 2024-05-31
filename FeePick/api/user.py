@@ -2,7 +2,7 @@ from flask import request
 from flask_restx import Resource
 
 from FeePick.model import UserModel
-from FeePick.service import save_user, get_user, get_route, make_user_benefit_list, add_selected_count
+from FeePick.service import save_user, get_user, get_route_list, make_user_benefit_list, add_selected_count
 
 _user_api = UserModel.user_api
 _user = UserModel.user
@@ -16,12 +16,11 @@ class User(Resource):
     @_user_api.expect(_user, validate=True)
     def post(self):
         data = request.json
-        route = get_route(data)
-        benefit_list = make_user_benefit_list(data, route)
+        route_list = get_route_list(data)
+        benefit_list = make_user_benefit_list(data, route_list)
         benefit_list = sorted(benefit_list, key=lambda x: (x['fee'], x['benefit']['name']))
         stored_list = []
         for i in benefit_list:
-            print(i['benefit']['name'] + " : " + str(i['fee']))
             stored_list.append(
                 {
                     'benefit': {
@@ -36,9 +35,8 @@ class User(Resource):
         for i in range(0, 3):
             add_selected_count(benefit_list[i]['benefit'], i)
         user, db_response = save_user(data)
-        print(db_response)
         if user is not None:
-            return str(user), 200
+            return user, 200
         else:
             return {'message': 'error'}, 500
 

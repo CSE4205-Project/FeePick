@@ -74,6 +74,3 @@ def create_tables():
                 'WriteCapacityUnits': 10
             }
         )
-
-
-boto3.set_stream_logger('')

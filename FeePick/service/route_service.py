@@ -28,7 +28,7 @@ class NaverAPI:
 
 class ODSayAPI:
     @staticmethod
-    def get_route(start, end):
+    def get_route(start, end, frequency):
         url = 'https://api.odsay.com/v1/api/searchPubTransPathT'
         payload = {
             'apiKey': Config.ODSAY_API_KEY,
@@ -41,6 +41,9 @@ class ODSayAPI:
         }
 
         response = requests.post(url, data=payload)
-        output = response.json()
-        return output['result']['path'][0]
-        # return output                           # ODsay 애서 가져온 response 를 그대로  return
+        result = response.json()
+        output = {
+            'route': result['result']['path'][0],
+            "frequency": frequency
+        }
+        return output

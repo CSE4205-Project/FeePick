@@ -1,5 +1,6 @@
 import decimal
 
+
 def decimal_to_float(item):
     for key, value in item.items():
         if type(value) is decimal.Decimal:
