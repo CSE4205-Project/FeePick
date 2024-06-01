@@ -2,7 +2,7 @@ from flask import request
 from flask_restx import Resource
 
 from FeePick.model import UserModel
-from FeePick.service import save_user, get_user, get_route_list, make_user_benefit_list, add_selected_count
+from FeePick.service import save_user, get_user, get_route_list, make_user_benefit_list, add_selected_count, decimal_to_float
 
 _user_api = UserModel.user_api
 _user = UserModel.user
@@ -35,8 +35,10 @@ class User(Resource):
         for i in range(0, 3):
             add_selected_count(benefit_list[i]['benefit'], i)
         user, db_response = save_user(data)
+        for i in range(0, len(benefit_list)):
+            benefit_list[i]['benefit'] = decimal_to_float(benefit_list[i]['benefit'])
         if user is not None:
-            return user, 200
+            return benefit_list, 200
         else:
             return {'message': 'error'}, 500
 
