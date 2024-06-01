@@ -1,6 +1,7 @@
+import boto3
+
 from FeePick.config import Config
 
-import boto3
 
 dynamodb = boto3.resource(
     'dynamodb',
@@ -15,6 +16,7 @@ user_table_name = Config.USER_TABLE_NAME
 
 
 def create_tables():
+
     if benefit_table_name not in table_name:
         benefit_table = dynamodb.create_table(
             TableName=benefit_table_name,
@@ -72,6 +74,3 @@ def create_tables():
                 'WriteCapacityUnits': 10
             }
         )
-
-
-boto3.set_stream_logger('')

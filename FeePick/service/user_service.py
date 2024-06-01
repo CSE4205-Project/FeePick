@@ -6,10 +6,14 @@ from boto3.dynamodb.conditions import Attr
 
 from FeePick.config import Config
 from FeePick.migration import dynamodb
+from .routine import decimal_to_float
 from .route_service import NaverAPI, ODSayAPI
+from .benefit_service import benefit_table, make_benefit_list
+from .kpass import KPass
 
 
-db = dynamodb.Table(Config.USER_TABLE_NAME)
+user_table = dynamodb.Table(Config.USER_TABLE_NAME)
+climate_table = dynamodb.Table(Config.CLIMATE_TABLE_NAME)
 
 
 def save_user(user):
@@ -19,35 +23,43 @@ def save_user(user):
         'id': (dtime * 10000000) + random.randint(2000000, 9999999),
         'age': user['age'],
         'gender': user['gender'],
-        'residence': user['residence'],
-        'start': user['start'],
-        'end': user['end'],
-        'times': user['times'],
+        'residence1': user['residence1'],
+        'residence2': user['residence2'],
+        'location': user['location'],
         'specialCase': user['specialCase'],
-        'benefit': None,
+        'benefit': user['selectedBenefit'],
     }
     try:
-        response = db.put_item(Item=item)
+        response = user_table.put_item(Item=item)
+        for i in range(0, len(item['benefit'])):
+            item['benefit'][i]['benefit'] = decimal_to_float(item['benefit'][i]['benefit'])
         return item, response
     except Exception as e:
         return False, str(e)
 
 
 def get_user(_id):
-    response = db.scan(
+    response = user_table.scan(
         FilterExpression=Attr('id').eq(_id)
     )
     return response['Items'][0]
 
 
-def calc_exist_trans_fee(user):
-    start_pos = NaverAPI.get_position(user['start'])
-    end_pos = NaverAPI.get_position(user['end'])
-    route = ODSayAPI.get_route(start_pos, end_pos)
-    fee_month = route['info']['payment'] * user['times'] * 2
+def get_route_list(user):
+    route_list = []
+    for location in user['location']:
+        start_pos = NaverAPI.get_position(location['departure'])
+        end_pos = NaverAPI.get_position(location['destination'])
+        route = ODSayAPI.get_route(start_pos, end_pos, location['frequency'])
+        route_list.append(route)
 
-    if route:
-        return route, fee_month
+    return route_list
 
-    else:
-        return None, None
+
+def make_user_benefit_list(user, route_list):
+    benefit_lists = []
+    kpass = KPass(benefit_table)
+    benefit_lists.extend(kpass.calc_kpass(user, route_list))
+    benefit_lists.extend(make_benefit_list(user, route_list))
+
+    return benefit_lists

@@ -1,6 +1,7 @@
-import json
+# import simplejson as json
+import decimal
 
-from flask import request
+from flask import request, jsonify
 from flask_restx import Resource
 
 from FeePick.model import BenefitModel
@@ -21,14 +22,6 @@ class Benefit(Resource):
         except Exception as e:
             return str(e), 400
 
-    # @_benefit_api.doc(id='DeleteBenefit', description='특정 혜택 삭제')
-    # def delete(self, _id):
-    #     try:
-    #         item = benefit_service.delete_benefit(_id)
-    #         return item, 201
-    #     except Exception as e:
-    #         return str(e), 400
-
 
 @_benefit_api.route('/list')
 @_benefit_api.doc(id='BenefitList', description='혜택 리스트')
@@ -37,7 +30,7 @@ class BenefitList(Resource):
     def post(self):
         benefit_list = benefit_service.get_all_benefits()
         if benefit_list:
-            return str(benefit_list), 201
+            return benefit_list, 201
         else:
             return {'message': "Failed"}, 400
 
@@ -51,4 +44,4 @@ class BenefitAdd(Resource):
         data = request.get_json()
         benefit, db_response = benefit_service.save_benefit(data)
         print(db_response)
-        return {'message': 'Success'}, 201
+        return str(benefit), 201

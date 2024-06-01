@@ -16,3 +16,4 @@ class Config:
     # DB Table
     BENEFIT_TABLE_NAME = os.environ.get('BENEFIT_TABLE')
     USER_TABLE_NAME = os.environ.get('USER_TABLE')
+    CLIMATE_TABLE_NAME = os.environ.get('CLIMATE_TABLE')

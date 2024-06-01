@@ -1,0 +1,59 @@
+name: dev-deploy
+
+on:
+  push:
+    branches: [ dev ]
+#  pull_request:
+#    branches: [ dev ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.12.2
+
+      - name: Make venv
+        run : |
+            python -m venv venv
+            . venv/bin/activate
+            pip install -r requirements.txt
+
+      - name: Create .env file
+        working-directory: ./
+        run : |
+          echo "AWS_REGION=${{ secrets.AWS_REGION }}" >> .env
+          echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> .env
+          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> .env
+          echo "NAVER_MAPS_CLIENT_ID=${{ secrets.NAVER_MAPS_CLIENT_ID }}" >> .env
+          echo "NAVER_MAPS_CLIENT_SECRET=${{ secrets.NAVER_MAPS_CLIENT_SECRET }}" >> .env
+          echo "ODSAY_API_KEY=${{ secrets.ODSAY_API_KEY }}" >> .env
+          echo "BENEFIT_TABLE=${{ secrets.BENEFIT_TABLE }}" >> .env
+          echo "USER_TABLE=${{ secrets.USER_TABLE }}" >> .env
+          echo "CLIMATE_TABLE=${{ secrets.CLIMATE_TABLE }}" >> .env
+
+      - name: Create Compressed file
+        run: zip -r server.zip .
+
+      - name: Configuring AWS Credential
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: Upload S3
+        run: aws s3 cp --region ap-northeast-2 ./server.zip s3://${{secrets.BUCKET_NAME}}/public/
+
+      - name: Deploy CodeDeploy
+        run: aws deploy create-deployment
+          --application-name ${{secrets.CODEDEPLOY_APP_NAME}}
+          --deployment-config-name CodeDeployDefault.OneAtATime
+          --deployment-group-name ${{secrets.CODEDEPLOY_DG_NAME}}
+          --s3-location bucket=${{secrets.BUCKET_NAME}},bundleType=zip,key=public/server.zip
