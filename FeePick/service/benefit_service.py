@@ -137,34 +137,40 @@ def check_climatecard_area(_route):
 # _fee : 기본 요금
 # _times : 이용 횟수
 def calc_amount(_standard_fee, _item, _route):
-    fee = _route['route']['info']['payment']
     frequency = _route['frequency']
 
-    # 비율 할인 이면서 할인 금액에 제한이 있는 경우:
-    if _item['rateCondition'] and _item['hasLimit']:
-        fee_tmp = _standard_fee * _item['rate']
-        if fee_tmp < _item['amount']:
-            _standard_fee -= fee_tmp
-        else:
-            _standard_fee -= _item['amount']
+    # 최소사용금액
+    if _standard_fee < _item['condition']:
+        return int(_standard_fee)
 
-    # 비율 할인인 경우
-    elif _item['rateCondition']:
-        _standard_fee *= (1 - _item['rate'])
+    # 비율 할인 이면서 할인 금액에 제한이 있는 경우:
+    if _item['rateCondition']:
+        if _item['hasLimit']:
+            fee_tmp = _standard_fee * _item['rate']
+            if fee_tmp < _item['amount']:
+                _standard_fee -= fee_tmp
+            else:
+                _standard_fee -= _item['amount']
+        # 비율 할인인 경우
+        else:
+            _standard_fee *= (1 - _item['rate'])
 
     # 정액 할인인 경우:
     elif _item['amountCondition']:
-        # 교통비 n원 이상 사용 조건이 있을 시
-        if _item['condition'] > 0:
-            if _standard_fee >= _item['condition']:
-                _standard_fee -= _item['amount']
-        # 그 외
-        else:
-            _standard_fee -= _item['amount']
+        _standard_fee -= _item['amount']
 
     # 건당 할인인 경우
     elif _item['caseCondition']:
-        _standard_fee -= (_item['case'] * frequency * 2)
+        # 최대 할인에 제한이 있는 경우
+        if _item['hasLimit']:
+            fee_tmp = _item['case'] * frequency * 2
+            if fee_tmp < _item['amount']:
+                _standard_fee -= fee_tmp
+            else:
+                _standard_fee -= _item['amount']
+        # 아닌 경우
+        else:
+            _standard_fee -= (_item['case'] * frequency * 2)
 
     # 정기권이면 금액 그대로
     if _item['priceCondition']:
