@@ -95,7 +95,7 @@ class KPass:
                 # 할인 가능 횟수가 남아 있고, 경로 이용 횟수를 빼도 할인 가능 횟수가 남아 있으면
                 if self.times > (_user['location'][i]['frequency'] * 2):
                     unchecked_times = 0
-                    checked_times = _user['location'][i]['frequency'] * 1
+                    checked_times = _user['location'][i]['frequency'] * 2
                     self.times -= (_user['location'][i]['frequency'] * 2)
                 # 할인 가능 횟수가 남아 있지만, 본 경로를 다 이용 하면 할인 가능 횟수가 0이 되는 경우
                 elif 0 < self.times <= (_user['location'][i]['frequency'] * 2):
