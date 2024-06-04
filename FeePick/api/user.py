@@ -38,7 +38,7 @@ class User(Resource):
         for i in range(0, len(benefit_list)):
             benefit_list[i]['benefit'] = decimal_to_float(benefit_list[i]['benefit'])
         if user is not None:
-            return benefit_list, 200
+            return benefit_list[0:5], 200
         else:
             return {'message': 'error'}, 500
 

@@ -1,6 +1,6 @@
 from boto3.dynamodb.conditions import Attr
 
-from FeePick.service import calc_amount
+from .benefit_service import calc_amount, calc_once_amount
 from .routine import decimal_to_float
 
 
@@ -131,7 +131,8 @@ class KPass:
             output += standard_fee
             i += 1
 
-        output = calc_amount(output, _item, frequency)
+        # 모든 경로를 통틀어 1회 할인 하는 경우
+        output = calc_once_amount(output, _item)
 
         if _item['hasLimit']:
             if _item['amount'] < total_discount:
