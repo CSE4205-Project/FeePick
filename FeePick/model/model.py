@@ -15,6 +15,7 @@ class BenefitModel:
                 "subject": fields.String(),
                 "benefitType": fields.String(),
                 "cardType": fields.String(),
+                "company": fields.String()
         }
     )
     benefit = benefit_api.model(

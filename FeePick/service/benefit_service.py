@@ -136,9 +136,8 @@ def check_climatecard_area(_route):
 # _amount : 전체 금액
 # _fee : 기본 요금
 # _times : 이용 횟수
-def calc_amount(_standard_fee, _item, _route):
-    frequency = _route['frequency']
-
+def calc_amount(_standard_fee, _item, _frequency):
+    total_discount = 0
     # 최소사용금액
     if _standard_fee < _item['condition']:
         return int(_standard_fee)
@@ -149,35 +148,44 @@ def calc_amount(_standard_fee, _item, _route):
             fee_tmp = _standard_fee * _item['rate']
             if fee_tmp < _item['amount']:
                 _standard_fee -= fee_tmp
+                total_discount += fee_tmp
             else:
                 _standard_fee -= _item['amount']
+                total_discount += _item['amount']
         # 비율 할인인 경우
         else:
             _standard_fee *= (1 - _item['rate'])
+            total_discount += _standard_fee * _item['rate']
 
-    # 정액 할인인 경우:
-    elif _item['amountCondition']:
-        _standard_fee -= _item['amount']
-
-    # 건당 할인인 경우
     elif _item['caseCondition']:
-        # 최대 할인에 제한이 있는 경우
         if _item['hasLimit']:
-            fee_tmp = _item['case'] * frequency * 2
+            fee_tmp = _item['case'] * _frequency * 2
             if fee_tmp < _item['amount']:
                 _standard_fee -= fee_tmp
+                total_discount += fee_tmp
             else:
                 _standard_fee -= _item['amount']
+                total_discount += _item['amount']
         # 아닌 경우
         else:
-            _standard_fee -= (_item['case'] * frequency * 2)
+            _standard_fee -= (_item['case'] * _frequency * 2)
+            total_discount += (_item['case'] * _frequency * 2)
+
+    # 연회비면 금액 책정에 반영
+    else:
+        _standard_fee += int(_item['annualFee'] / 12)
+
+    return int(_standard_fee), total_discount
+
+
+def calc_once_amount(_standard_fee, _item):
+    # 정액 할인인 경우:
+    if _item['amountCondition']:
+        _standard_fee -= _item['amount']
 
     # 정기권이면 금액 그대로
     if _item['priceCondition']:
         _standard_fee = _item['price']
-    # 연회비면 금액 책정에 반영
-    else:
-        _standard_fee += int(_item['annualFee'] / 12)
 
     return int(_standard_fee)
 
@@ -205,15 +213,32 @@ def make_benefit_list(_user, _route_list):
         if benefit['name'] == '기후동행카드':
             continue
 
-        amount = 0
         i = 0
+        amount = 0
+        frequency = 0
+        total_discount = 0
+        standard_fee = 0
         for route in _route_list:
-            amount += calc_amount(
+            frequency += route['frequency']
+            amount_tmp, discount_tmp = calc_amount(
                 route['route']['info']['payment'] * route['frequency'] * 2,
                 benefit,
-                route
+                route['frequency']
             )
+            amount += amount_tmp
+            total_discount += discount_tmp
             i += 1
+
+        # 모든 경로를 통틀어 1회 할인 하는 경우
+        amount = calc_once_amount(standard_fee, benefit)
+
+        # 제한 금액 확인
+        if benefit['hasLimit']:
+            if total_discount < benefit['amount']:
+                amount = standard_fee - benefit['amount']
+            else:
+                amount = standard_fee - total_discount
+
         benefit_list.append({
             'benefit': benefit,
             'fee': amount
