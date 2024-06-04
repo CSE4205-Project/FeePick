@@ -21,6 +21,7 @@ class KPass:
         _route_list = sorted(_route_list, key=lambda x: x['route']['info']['payment'], reverse=True)
 
         for item in kpass_list:
+            self.times = 60
             # 정부 제공
             if item['provider'] == 'gov':
                 benefit_list.append(
@@ -56,7 +57,6 @@ class KPass:
             # 카드사 제공
             else:
                 amount = self.calc_kpass_amount(_user, _route_list, decimal_to_float(item))
-
                 benefit_list.append(
                     {
                         'benefit': item,
@@ -88,9 +88,8 @@ class KPass:
             else:
                 ratio = 0.8
 
-            unchecked_times = _user['location'][i]['frequency'] * 2  # 할인이 적용 되지 않는 횟수
+            unchecked_times = route['frequency'] * 2  # 할인이 적용 되지 않는 횟수
             checked_times = 0  # 할인이 적용 되는 횟수
-            standard_fee = 0  # 계산이 왼료된 후의 금액
             base_fee = route['route']['info']['payment']  # 기본요금
 
             # 인천, 경기는 지원 횟수 무제한
@@ -126,14 +125,14 @@ class KPass:
                 calc_fee = overflow_fee + 200000
 
             discount_tmp = calc_route_amount(_item, route)
-            if _item['hasLimit']:
-                # 할인 금액이 상한을 초과하면
+            if _item['hasLimit'] and _item['caseCondition']:
+                # 뺀 할인 금액이 상한을 초과하면
                 if limit_discount - discount_tmp <= 0:
-                    calc_fee -= limit_discount  # 남은 상한 만큼
+                    calc_fee -= limit_discount
                     limit_discount = 0
-                # 할인 금액이 상한을 초과하지 않으면
+                # 할인 금액이 상한을 초과하면
                 elif limit_discount - discount_tmp > 0:
-                    calc_fee -= discount_tmp
+                    calc_fee -= discount_tmp  # 남은 상한 만큼
                     limit_discount -= discount_tmp
             else:
                 calc_fee -= discount_tmp
