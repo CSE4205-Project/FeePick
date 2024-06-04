@@ -140,7 +140,7 @@ def calc_amount(_standard_fee, _item, _frequency):
     total_discount = 0
     # 최소사용금액
     if _standard_fee < _item['condition']:
-        return int(_standard_fee)
+        return int(_standard_fee), int(total_discount)
 
     # 비율 할인 이면서 할인 금액에 제한이 있는 경우:
     if _item['rateCondition']:
@@ -175,7 +175,7 @@ def calc_amount(_standard_fee, _item, _frequency):
     else:
         _standard_fee += int(_item['annualFee'] / 12)
 
-    return int(_standard_fee), total_discount
+    return int(_standard_fee), int(total_discount)
 
 
 def calc_once_amount(_standard_fee, _item):
