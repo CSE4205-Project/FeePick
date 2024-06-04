@@ -17,9 +17,9 @@ climate_table = dynamodb.Table(Config.CLIMATE_TABLE_NAME)
 def save_benefit(dto):
     dtime = int(time.time())
     item = {
-        'uuid': str(uuid.uuid4()),                                    # data 고유 id
-        'datetime': dtime,                                            # data 시간
-        'id': (dtime * 10000000) + random.randint(1, 1999999),  # data 접근용 id
+        'uuid': str(uuid.uuid4()),                                                  # data 고유 id
+        'datetime': dtime,                                                          # data 시간
+        'id': ((dtime * 1000000) * 10000000) + random.randint(1, 1999999),    # data 접근용 id
         'name': dto['name'],
         'provider': dto['provider'],
         'description': dto['description'],

@@ -20,7 +20,7 @@ def save_user(user):
     dtime = int(time.time())
     item = {
         'uuid': str(uuid.uuid4()),
-        'id': (dtime * 10000000) + random.randint(2000000, 9999999),
+        'id': ((dtime * 1000000) * 10000000) + random.randint(2000000, 9999999),
         'age': user['age'],
         'gender': user['gender'],
         'residence1': user['residence1'],
