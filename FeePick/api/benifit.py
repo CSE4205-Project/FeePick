@@ -1,11 +1,8 @@
-# import simplejson as json
-import decimal
-
 from flask import request, jsonify
 from flask_restx import Resource
 
 from FeePick.model import BenefitModel
-from FeePick.service import benefit_service
+from FeePick.service import benefit_service, decimal_to_float
 
 _benefit_api = BenefitModel.benefit_api
 _benefit = BenefitModel.benefit
@@ -43,5 +40,5 @@ class BenefitAdd(Resource):
     def post(self):
         data = request.get_json()
         benefit, db_response = benefit_service.save_benefit(data)
-        print(db_response)
-        return str(benefit), 201
+        benefit = decimal_to_float(benefit)
+        return benefit, 201

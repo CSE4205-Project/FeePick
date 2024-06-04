@@ -1,6 +1,6 @@
 from boto3.dynamodb.conditions import Attr
 
-from .benefit_service import calc_amount, calc_once_amount
+from .benefit_service import calc_route_amount, calc_once_amount
 from .routine import decimal_to_float
 
 
@@ -70,17 +70,20 @@ class KPass:
     def calc_kpass_amount(self, _user, _route_list, _item):
         output = 0  # 선택된 K-패스 유형의 최종 금액
         i = 0  # 경로의 index
-        frequency = 0
-        total_discount = 0
-        total_kpass_discount = 0
+        frequency = 0                                               # 횟수
+        limit_discount = 0                                          # 할인 금액 상한
+        standard_fee = 0                                            # 최종 할인액
 
-        # 경로별 요금 합산
+        if _item['hasLimit']:
+            limit_discount = _item['amount']
+
+        # K패스 할인 혜택 합산
         for route in _route_list:
             frequency += route['frequency']
             # 지원 대상 필터링
             if _user['specialCase'] is True:
                 ratio = 0.467
-            elif 19 < _user['age'] < 35:
+            elif 18 < _user['age'] < 35:
                 ratio = 0.7
             else:
                 ratio = 0.8
@@ -92,9 +95,11 @@ class KPass:
 
             # 인천, 경기는 지원 횟수 무제한
             if _item['provider'] == 'loc':
+                if _user['age'] < 40:
+                    ratio = 0.7
                 unchecked_times = 0
                 checked_times = _user['location'][i]['frequency'] * 2
-                standard_fee = (base_fee * ratio * checked_times) + (base_fee * unchecked_times)
+                calc_fee = (base_fee * ratio * checked_times) + (base_fee * unchecked_times)
             else:
                 # 할인 가능 횟수가 남아 있고, 경로 이용 횟수를 빼도 할인 가능 횟수가 남아 있으면
                 if self.times > (_user['location'][i]['frequency'] * 2):
@@ -112,30 +117,36 @@ class KPass:
                     checked_times = 0
 
                 # 이용 금액 계산
-                standard_fee = (base_fee * ratio * checked_times) + (base_fee * unchecked_times)
+                calc_fee = (base_fee * ratio * checked_times) + (base_fee * unchecked_times)
 
             # 20만원 초과 시
-            if standard_fee > 200000:
-                overflow_fee = standard_fee - 200000
+            if calc_fee > 200000:
+                overflow_fee = calc_fee - 200000
                 overflow_fee *= 0.5
-                standard_fee = overflow_fee + 200000
+                calc_fee = overflow_fee + 200000
 
-            total_kpass_discount += standard_fee
+            discount_tmp = calc_route_amount(_item, route)
+            if _item['hasLimit']:
+                # 할인 금액이 상한을 초과하면
+                if limit_discount - discount_tmp <= 0:
+                    calc_fee -= limit_discount  # 남은 상한 만큼
+                    limit_discount = 0
+                # 할인 금액이 상한을 초과하지 않으면
+                elif limit_discount - discount_tmp > 0:
+                    calc_fee -= discount_tmp
+                    limit_discount -= discount_tmp
+            else:
+                calc_fee -= discount_tmp
 
-            if _item['provider'] == 'com':
-                standard_fee = output
-                tmp1, tmp2 = calc_amount(output, _item, frequency)
-
-                total_discount += tmp2
-
-            output += standard_fee
+            standard_fee += calc_fee
             i += 1
 
-        # 모든 경로를 통틀어 1회 할인 하는 경우
-        output = calc_once_amount(output, _item)
-
-        if _item['hasLimit']:
-            if _item['amount'] < total_discount:
-                output = total_kpass_discount - _item['amount']
+        if _item['provider'] == 'com':
+            output = calc_once_amount(standard_fee, _item, limit_discount)
+            # 사용 금액을 넘지 못했으면 혜택 없음
+            if _item['condition'] > standard_fee:
+                output = standard_fee
+        else:
+            output = standard_fee
 
         return int(output)

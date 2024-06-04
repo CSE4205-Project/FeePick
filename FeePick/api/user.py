@@ -19,24 +19,26 @@ class User(Resource):
         route_list = get_route_list(data)
         benefit_list = make_user_benefit_list(data, route_list)
         benefit_list = sorted(benefit_list, key=lambda x: (x['fee'], x['benefit']['name']))
+        for i in range(0, len(benefit_list)):
+            benefit_list[i]['benefit'] = decimal_to_float(benefit_list[i]['benefit'])
+            benefit_list[i]['fee'] = int(benefit_list[i]['fee'])
+
         stored_list = []
-        for i in benefit_list:
+        for item in benefit_list:
             stored_list.append(
                 {
                     'benefit': {
-                        'uuid': i['benefit']['uuid'],
-                        'id': i['benefit']['id'],
-                        'name': i['benefit']['name'],
+                        'uuid': item['benefit']['uuid'],
+                        'id': item['benefit']['id'],
+                        'name': item['benefit']['name'],
                     },
-                    'fee': i['fee']
+                    'fee': int(item['fee'])
                 }
             )
         data['selectedBenefit'] = stored_list
         for i in range(0, 3):
             add_selected_count(benefit_list[i]['benefit'], i)
         user, db_response = save_user(data)
-        for i in range(0, len(benefit_list)):
-            benefit_list[i]['benefit'] = decimal_to_float(benefit_list[i]['benefit'])
         if user is not None:
             return benefit_list[0:5], 200
         else:
