@@ -53,8 +53,24 @@ def get_benefit(_id):
     )
     item = response['Items'][0]
     item = decimal_to_float(item)               # Decimal data를 float/int로 변환
+    if item:
+        benefit_table.update_item(
+            Key={
+                'uuid': item['uuid'],
+                'id': item['id']
+            },
+            UpdateExpression='SET #push_view = :val2',
+            ExpressionAttributeNames={
+                '#push_view': 'view'
+            },
+            ExpressionAttributeValues={
+                ':val2': item['view'] + 1,
+            }
+        )
 
-    return item
+        return item
+    else:
+        return None
 
 
 def get_all_benefits():

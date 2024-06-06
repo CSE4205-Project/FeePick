@@ -42,7 +42,10 @@ def get_user(_id):
     response = user_table.scan(
         FilterExpression=Attr('id').eq(_id)
     )
-    return response['Items'][0]
+    if response['Items'][0]:
+        return response['Items'][0]
+    else:
+        return None
 
 
 def get_route_list(user):
