@@ -52,4 +52,7 @@ class UserId(Resource):
     @_user_api.doc(id='2-2-1', description='User 정보를 가져오는 api')
     def post(self, _id):
         user = get_user(_id)
-        return user, 200
+        if user is not None:
+            return user, 200
+        else:
+            return {'message': 'error'}, 400
