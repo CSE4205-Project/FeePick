@@ -1,8 +1,9 @@
-FROM python:3.11
+FROM python:3.12
 
-WORKDIR /app
-COPY . /app
 COPY requirements.txt /
 RUN pip install -r /requirements.txt
 
-CMD ["python", "run.py"]
+COPY . /app
+WORKDIR /app
+
+CMD ["python3", "-m", "flask", "run", "--host=0.0.0.0"]
