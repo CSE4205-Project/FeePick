@@ -17,6 +17,11 @@ class User(Resource):
     def post(self):
         data = request.json
         route_list = get_route_list(data)
+
+        before_fee = 0
+        for route in route_list:
+            before_fee += (route['route']['info']['payment'] * route['frequency'] * 2)
+
         benefit_list = make_user_benefit_list(data, route_list)
         benefit_list = sorted(benefit_list, key=lambda x: (x['fee'], x['benefit']['name']))
         for i in range(0, len(benefit_list)):
@@ -40,7 +45,7 @@ class User(Resource):
             add_selected_count(benefit_list[i]['benefit'], i)
         user, db_response = save_user(data)
         if user is not None:
-            return benefit_list[0:5], 200
+            return {'benefit_list': benefit_list[0:5], 'before_fee': before_fee}, 200
         else:
             return {'message': 'error'}, 500
 
