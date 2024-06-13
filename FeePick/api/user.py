@@ -30,7 +30,7 @@ class User(Resource):
         benefit_list = sorted(benefit_list, key=lambda x: (x['fee'], x['benefit']['name']))
         for i in range(0, len(benefit_list)):
             benefit_list[i]['benefit'] = decimal_to_float(benefit_list[i]['benefit'])
-            benefit_list[i]['fee'] = int(benefit_list[i]['fee'] / 4)
+            benefit_list[i]['fee'] = int(benefit_list[i]['fee'])
 
         stored_list = []
         for item in benefit_list:
@@ -49,7 +49,7 @@ class User(Resource):
             add_selected_count(benefit_list[i]['benefit'], i)
         user, db_response = save_user(data)
         if user is not None:
-            return {'benefit_list': benefit_list[0:5], 'before_fee': int(before_fee / 4)}, 200
+            return {'benefit_list': benefit_list[0:5], 'before_fee': int(before_fee)}, 200
         else:
             return {'message': 'error'}, 500
 
