@@ -4,7 +4,10 @@ from FeePick.config import Config
 
 
 dynamodb = boto3.resource(
-    'dynamodb'
+    'dynamodb',
+    region_name=Config.t1,
+    aws_access_key_id=Config.t2,
+    aws_secret_access_key=Config.t3
 )
 
 table_name = [table.name for table in dynamodb.tables.all()]
