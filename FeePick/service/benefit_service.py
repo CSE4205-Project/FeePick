@@ -151,7 +151,7 @@ def check_climatecard_area(_route):
 def calc_route_amount(_item, _route):
     total_discount = 0
     if _item['caseCondition']:
-        total_discount += _item['case'] * _route['frequency'] * 2
+        total_discount += _item['case'] * _route['frequency']
 
     return total_discount
 
@@ -209,7 +209,7 @@ def make_benefit_list(_user, _route_list):
             limit_discount = benefit['amount']                      # 할인 금액 상한 지정
 
         for route in _route_list:
-            before_fee = route['route']['info']['payment'] * route['frequency'] * 2
+            before_fee = route['route']['info']['payment'] * route['frequency']
             discount_tmp = calc_route_amount(benefit, route)
             if benefit['hasLimit']:
                 # 할인 금액이 상한을 초과하면

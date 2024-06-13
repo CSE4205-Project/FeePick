@@ -16,11 +16,15 @@ class User(Resource):
     @_user_api.expect(_user, validate=True)
     def post(self):
         data = request.json
+
+        for i in range(0, len(data['location'])):
+            data['location'][i]['frequency'] = data['location'][i]['frequency']
+
         route_list = get_route_list(data)
 
         before_fee = 0
         for route in route_list:
-            before_fee += (route['route']['info']['payment'] * route['frequency'] * 2)
+            before_fee += (route['route']['info']['payment'] * route['frequency'])
 
         benefit_list = make_user_benefit_list(data, route_list)
         benefit_list = sorted(benefit_list, key=lambda x: (x['fee'], x['benefit']['name']))
