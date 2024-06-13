@@ -24,7 +24,6 @@ class User(Resource):
         before_fee = 0
         for route in route_list:
             before_fee += (route['route']['info']['payment'] * route['frequency'])
-            print(route['route']['info']['payment'])
 
         benefit_list = make_user_benefit_list(data, route_list)
         benefit_list = sorted(benefit_list, key=lambda x: (x['fee'], x['benefit']['name']))
