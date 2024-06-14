@@ -42,19 +42,3 @@ class BenefitAdd(Resource):
         benefit, db_response = benefit_service.save_benefit(data)
         benefit = decimal_to_float(benefit)
         return benefit, 201
-
-
-@_benefit_api.route('/test')
-@_benefit_api.doc(id='test', description='test')
-class Test(Resource):
-    @_benefit_api.doc(id='test', description='test')
-    def post(self):
-        benefit_list = benefit_service.get_all_benefits()
-        output = []
-        for benefit in benefit_list:
-            if benefit['kpass'] is True:
-                output.append(decimal_to_float(benefit))
-
-        print(len(output))
-
-        return output, 201
