@@ -1,9 +1,17 @@
-FROM python:3.12
+FROM ubuntu:22.04
 
-COPY requirements.txt /
-RUN pip install -r /requirements.txt
+# AWS-cli install
+RUN apt update -y
+RUN apt install curl unzip python3 python3-pip python3.10-venv  -y
+RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+RUN unzip awscliv2.zip
+RUN ./aws/install
 
 COPY . /app
 WORKDIR /app
 
-CMD ["python3", "-m", "flask", "run", "--host=0.0.0.0"]
+RUN python3 -m venv venv
+RUN . ./venv/bin/activate
+RUN pip install -r requirements.txt
+
+CMD ["python3", "-m", "flask", "run", "--host=0.0.0.0", "--port=5000"]
