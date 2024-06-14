@@ -16,7 +16,15 @@ class User(Resource):
     @_user_api.expect(_user, validate=True)
     def post(self):
         data = request.json
+        for i in range(0, len(data['location'])):
+            data['location'][i]['frequency'] = data['location'][i]['frequency'] * 4
+
         route_list = get_route_list(data)
+
+        before_fee = 0
+        for route in route_list:
+            before_fee += (route['route']['info']['payment'] * route['frequency'])
+
         benefit_list = make_user_benefit_list(data, route_list)
         benefit_list = sorted(benefit_list, key=lambda x: (x['fee'], x['benefit']['name']))
         for i in range(0, len(benefit_list)):
@@ -40,7 +48,7 @@ class User(Resource):
             add_selected_count(benefit_list[i]['benefit'], i)
         user, db_response = save_user(data)
         if user is not None:
-            return benefit_list[0:5], 200
+            return {'benefit_list': benefit_list[0:5], 'before_fee': int(before_fee)}, 200
         else:
             return {'message': 'error'}, 500
 
